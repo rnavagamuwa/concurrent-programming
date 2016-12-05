@@ -2,10 +2,55 @@
 #include <time.h>
 #include <stdio.h>
 
+struct node **root;
+
 struct node {
-  int x;
+  int value;
   struct node *next;
 };
+
+int insert(int value,struct node **head){
+    struct node* curr = *head;
+    struct node* prev = NULL;
+    struct node* temp;
+
+    while(curr!=NULL && curr-> value < value){
+        prev=curr;
+        curr=curr->next;
+    }
+
+    if(curr==NULL || curr->value > value){
+        temp = malloc(sizeof(struct node));
+        temp->value = value;
+        temp->next = curr;
+
+        if(prev==NULL){
+            *head=temp;
+        }
+        else{
+            prev->next=temp;
+        }
+        return 1;
+    }else{
+        return 0;  /*value is already in the list*/
+    }
+  
+}
+
+int generateList(int n, struct node **head,int maxNumber){
+  int result = 0;
+  *head = malloc( sizeof(struct node) ); 
+  (*head)->value = rand() % maxNumber+1;
+
+  for (int i = 0; i < n; ++i)
+  {
+    result = insert(rand() % maxNumber+1,head);
+    if (result == 0)
+    {
+      i--;
+    }
+  }
+}
 
 int main()
 {
@@ -18,49 +63,11 @@ int main()
     int mInsert = m * 0.005;
     int mDelete = m * 0.005;
 
-    int value = 0;
-    int minValue =0;
     srand(time(NULL));
-    struct node *root;       
-    struct node *conductor;  
-    root = malloc( sizeof(struct node) );  
-    root->next = 0;  
-    value = rand() % range;
-    minValue = value;
-    root->x = value;
-    conductor = root; 
-
+    root = malloc( sizeof(struct node) ); 
     
-    for (int i = 0; i < n; ++i)
-    {
-      value = 0;
-      if ( conductor != 0 ) {
-        while ( conductor->next != 0)
-        {
-            conductor = conductor->next;
-        }
-
-         conductor->next = malloc( sizeof(struct node) );  
-         conductor = conductor->next; 
-
-      if ( conductor == 0 )
-        {
-          printf( "Out of memory" );
-          return 0;
-        }
-
-        while(value<=minValue){
-          value = rand() % range;
-        }
-        minValue = value;
-        conductor->next = 0;         
-        conductor->x = value;
-        printf("%d\n", conductor->x);
-    }
-    }
-
-
-
-   
+    generateList(n,root,range);
+    printf("%d\n",(*root)->next->value );
+    
     return 0;
 }
