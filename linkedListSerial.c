@@ -32,7 +32,7 @@ int insert(int value,struct node **head){
         }
         return 1;
     }else{
-        return 0;  /*value is already in the list*/
+        return 0; 
     }
   
 }
@@ -52,6 +52,21 @@ int generateList(int n, struct node **head,int maxNumber){
   }
 }
 
+int member(int value, struct node **head){
+  struct node* curr = *head;
+  int result = 0;
+
+  while(curr!=NULL){
+      if (curr->value == value)
+      {
+        return 1;
+      }
+      curr = curr->next;
+  }
+   return 0;
+
+}
+
 int main()
 {
         
@@ -68,6 +83,8 @@ int main()
     
     generateList(n,root,range);
     printf("%d\n",(*root)->next->value );
+    printf("%d\n", member(90,root));
+    printf("%d\n", member((*root)->next->value,root));
     
     return 0;
 }
