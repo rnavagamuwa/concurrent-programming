@@ -118,22 +118,29 @@ int main()
 
     //Variables
     int maxValue = 65535;
-    int n;
-    int m ;
-    double mMember;
-    double mInsert;
-    double mDelete;
+    // int n;
+    // int m ;
+    // double mMember;
+    // double mInsert;
+    // double mDelete;
 
-    printf("Enter n: ");
-    scanf("%d",&n);
-    printf("Enter m: ");
-    scanf("%d",&m);
-    printf("Enter member_fraction: ");
-    scanf("%lf",&mMember);
-    printf("Enter insert_fraction: ");
-    scanf("%lf",&mInsert);
-    printf("Enter delete_fraction: ");
-    scanf("%lf",&mDelete);
+
+    // printf("Enter number of samples: ");
+    // printf("Enter n: ");
+    // scanf("%d",&n);
+    // printf("Enter m: ");
+    // scanf("%d",&m);
+    // printf("Enter member_fraction: ");
+    // scanf("%lf",&mMember);
+    // printf("Enter insert_fraction: ");
+    // scanf("%lf",&mInsert);
+    // printf("Enter delete_fraction: ");
+    // scanf("%lf",&mDelete);
+    int n =1000;
+    int m =10000 ;
+    double mMember=0.99;
+    double mInsert=0.005;
+    double mDelete=0.005;
 
     mMember = m * mMember;
     mInsert = m * mInsert;
