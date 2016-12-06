@@ -2,8 +2,18 @@
 #include <time.h>
 #include <stdio.h>
 #include <math.h>
+#include <pthread.h>
 
 struct node **root;
+int threadCount =4;
+int maxValue = 65535;
+int n =1000;
+int m =10000 ;
+double mMember=0.99;
+double mInsert=0.005;
+double mDelete=0.005;
+pthread_mutex_t lock;
+int count = 0;
 
 struct node {
   int value;
@@ -111,44 +121,59 @@ double calculateSD(double data[])
 
 
 
+void *operations(void* rank){
+    double timespent[m];
+    clock_t begin;
+    clock_t end;
+    double timeSum = 0;
+    int keepDoing = 1;
+    int memberOperationCounter = 0;
+    int insertOperationCounter = 0;
+    int deleteOperationCounter = 0;
+    int max_mMember = mMember / threadCount;
+    int max_mInsert = mInsert / threadCount;
+    int max_mDelete = mDelete / threadCount;
+    printf("%d\n",max_mMember );
+    printf("%d\n",max_mInsert );
+    printf("%d\n",max_mDelete );
+
+    while(memberOperationCounter<max_mMember || insertOperationCounter<max_mInsert || deleteOperationCounter<max_mDelete){
+          if (memberOperationCounter<max_mMember)
+          {
+            memberOperationCounter++;
+            pthread_mutex_lock(&lock);
+            member(rand() % maxValue+1,root);
+            pthread_mutex_unlock(&lock);
+          }
+
+          if (insertOperationCounter<max_mInsert)
+          {
+            insertOperationCounter++;
+            pthread_mutex_lock(&lock);
+            insert(rand() % maxValue+1,root);
+            pthread_mutex_unlock(&lock);
+          }
+
+          if (deleteOperationCounter<max_mDelete)
+          {
+            deleteOperationCounter++;
+            pthread_mutex_lock(&lock);
+            delete(rand() % maxValue+1,root);
+            pthread_mutex_unlock(&lock);
+          }
+    }
+    return NULL;
+}
+
 int main()
 {
-        
-
-
-    //Variables
-    int maxValue = 65535;
-    // int n;
-    // int m ;
-    // double mMember;
-    // double mInsert;
-    // double mDelete;
-
-
-    // printf("Enter number of samples: ");
-    // printf("Enter n: ");
-    // scanf("%d",&n);
-    // printf("Enter m: ");
-    // scanf("%d",&m);
-    // printf("Enter member_fraction: ");
-    // scanf("%lf",&mMember);
-    // printf("Enter insert_fraction: ");
-    // scanf("%lf",&mInsert);
-    // printf("Enter delete_fraction: ");
-    // scanf("%lf",&mDelete);
-    int n =1000;
-    int m =10000 ;
-    double mMember=0.99;
-    double mInsert=0.005;
-    double mDelete=0.005;
-
-    mMember = m * mMember;
-    mInsert = m * mInsert;
-    mDelete = m * mDelete;
 
     srand(time(NULL));
     root = malloc( sizeof(struct node) ); 
     generateList(n,root,maxValue);
+    mMember = m * mMember;
+    mInsert = m * mInsert;
+    mDelete = m * mDelete;
 
     printf("===============================================================\n");
     printf("A linked list has been generated with %d elements.\n",n);
@@ -157,41 +182,32 @@ int main()
     printf("Number of insert operations : %d\n", (int)mInsert);
     printf("Number of delete operations : %d\n", (int)mDelete);
 
-    double timespent[m];
-    clock_t begin;
-    clock_t end;
-    double timeSum = 0;
-
-    for (int i = 0; i < (int)mMember; ++i)
+  long thread;
+  pthread_t* thread_handles;
+   if (pthread_mutex_init(&lock, NULL) != 0)
     {
-      begin = clock();
-      member(rand() % maxValue+1,root);
-      end = clock();
-      timespent[i] = (double)(end - begin) / CLOCKS_PER_SEC;
-      timeSum += timespent[i];
+        printf("\n mutex init failed\n");
+        return 1;
     }
 
-    for (int i = 0; i < (int)mInsert; ++i)
-    {
-      begin = clock();
-      insert(rand() % maxValue+1,root);
-      end = clock();
-      timespent[i+(int)mMember] = (double)(end - begin) / CLOCKS_PER_SEC;
-      timeSum += timespent[i+(int)mMember];
-    }
+  thread_handles = malloc(threadCount*sizeof(pthread_t));
 
-    for (int i = 0; i < (int)mDelete; ++i)
-    {
-      begin = clock();
-      delete(rand() % maxValue+1,root);
-      end = clock();
-      timespent[i+(int)mMember+(int)mInsert] = (double)(end - begin) / CLOCKS_PER_SEC;
-      timeSum += timespent[i+(int)mMember+(int)mInsert];
-    }
-    printf("===============================================================\n");
-    printf("Average time spent : %f seconds\n",timeSum/m );
-    printf("Standard deviation : %f seconds\n",calculateSD(timespent));
+  for (thread = 0; thread < threadCount; ++thread)
+  {
+    pthread_create(&thread_handles[thread],NULL,operations,(void*) thread);
+  }
 
+  for (thread = 0; thread < threadCount; ++thread)
+  {
+  pthread_join(thread_handles[thread],NULL);
+  }
+
+  free(thread_handles);
+  pthread_mutex_destroy(&lock);
+   printf("===============================================================\n");
+   printf("%d\n",count );
+   //  printf("Average time spent : %f seconds\n",timeSum/m );
+   //  printf("Standard deviation : %f seconds\n",calculateSD(timespent));
 
     return 0;
 }
