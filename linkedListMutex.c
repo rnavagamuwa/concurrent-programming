@@ -240,9 +240,9 @@ int main()
 
   free(thread_handles);
   pthread_mutex_destroy(&lock);
-   printf("===============================================================\n");
-    printf("Average time spent : %f seconds\n",calculateSum()/m );
-    printf("Standard deviation : %f seconds\n",calculateSD());
+  printf("===============================================================\n");
+  printf("Average time spent : %f seconds\n",calculateSum()/m );
+  printf("Standard deviation : %f seconds\n",calculateSD());
 
     return 0;
 }

@@ -4,6 +4,15 @@
 #include <math.h>
 
 struct node **root;
+int threadCount =4;
+int maxValue = 65535;
+int n =1000;
+int m = 10000;
+double mMember=0.99;
+double mInsert=0.005;
+double mDelete=0.005;
+double *timespent=0;
+int distance;
 
 struct node {
   int value;
@@ -90,7 +99,7 @@ int delete(int value, struct node **root){
   return 0;
 }
 
-double calculateSD(double data[])
+double calculateSD()
 {
     double sum = 0.0, mean, standardDeviation = 0.0;
 
@@ -98,31 +107,69 @@ double calculateSD(double data[])
 
     for(i=0; i<10; ++i)
     {
-        sum += data[i];
+        sum += timespent[i];
     }
 
     mean = sum/10;
 
     for(i=0; i<10; ++i)
-        standardDeviation += pow(data[i] - mean, 2);
+        standardDeviation += pow(timespent[i] - mean, 2);
 
     return sqrt(standardDeviation/10);
 }
 
+double calculateSum(){
+    double sum = 0;
+    for (int i = 0; i < m; ++i)
+    {
+      sum += timespent[i];
+    }
 
+    return sum;
+}
+
+
+void operations(){
+    int memberOperationCounter = 0;
+    int insertOperationCounter = 0;
+    int deleteOperationCounter = 0;
+    clock_t begin;
+    clock_t end;
+    int count=0;
+
+    while(memberOperationCounter<mMember || insertOperationCounter<mInsert || deleteOperationCounter<mDelete){
+          count++;
+          if (memberOperationCounter<mMember)
+          {
+            memberOperationCounter++;
+            begin = clock();
+            member(rand() % maxValue+1,root);
+            end = clock();
+            timespent[count] = (double)(end - begin) / CLOCKS_PER_SEC;
+          }
+
+          if (insertOperationCounter<mInsert)
+          {
+            insertOperationCounter++;
+            begin = clock();
+            insert(rand() % maxValue+1,root);
+            end = clock();
+            timespent[count] = (double)(end - begin) / CLOCKS_PER_SEC;
+          }
+
+          if (deleteOperationCounter<mDelete)
+          {
+            deleteOperationCounter++;
+            begin = clock();
+            delete(rand() % maxValue+1,root);
+            end = clock();
+            timespent[count] = (double)(end - begin) / CLOCKS_PER_SEC;
+          }
+    }
+}
 
 int main()
 {
-        
-
-
-    //Variables
-    int maxValue = 65535;
-    int n;
-    int m ;
-    double mMember;
-    double mInsert;
-    double mDelete;
 
     printf("Enter n: ");
     scanf("%d",&n);
@@ -135,13 +182,18 @@ int main()
     printf("Enter delete_fraction: ");
     scanf("%lf",&mDelete);
 
+    srand(time(NULL));
+    root = malloc( sizeof(struct node) ); 
+    generateList(n,root,maxValue);
     mMember = m * mMember;
     mInsert = m * mInsert;
     mDelete = m * mDelete;
 
-    srand(time(NULL));
-    root = malloc( sizeof(struct node) ); 
-    generateList(n,root,maxValue);
+    if (timespent != 0) {
+      timespent = (double*) realloc(timespent, m * sizeof(double));
+    } else {
+      timespent = (double*) malloc(m * sizeof(double));
+    }
 
     printf("===============================================================\n");
     printf("A linked list has been generated with %d elements.\n",n);
@@ -150,41 +202,11 @@ int main()
     printf("Number of insert operations : %d\n", (int)mInsert);
     printf("Number of delete operations : %d\n", (int)mDelete);
 
-    double timespent[m];
-    clock_t begin;
-    clock_t end;
-    double timeSum = 0;
+    operations();
 
-    for (int i = 0; i < (int)mMember; ++i)
-    {
-      begin = clock();
-      member(rand() % maxValue+1,root);
-      end = clock();
-      timespent[i] = (double)(end - begin) / CLOCKS_PER_SEC;
-      timeSum += timespent[i];
-    }
-
-    for (int i = 0; i < (int)mInsert; ++i)
-    {
-      begin = clock();
-      insert(rand() % maxValue+1,root);
-      end = clock();
-      timespent[i+(int)mMember] = (double)(end - begin) / CLOCKS_PER_SEC;
-      timeSum += timespent[i+(int)mMember];
-    }
-
-    for (int i = 0; i < (int)mDelete; ++i)
-    {
-      begin = clock();
-      delete(rand() % maxValue+1,root);
-      end = clock();
-      timespent[i+(int)mMember+(int)mInsert] = (double)(end - begin) / CLOCKS_PER_SEC;
-      timeSum += timespent[i+(int)mMember+(int)mInsert];
-    }
     printf("===============================================================\n");
-    printf("Average time spent : %f seconds\n",timeSum/m );
-    printf("Standard deviation : %f seconds\n",calculateSD(timespent));
-
+    printf("Average time spent : %f seconds\n",calculateSum()/m );
+    printf("Standard deviation : %f seconds\n",calculateSD());
 
     return 0;
 }
