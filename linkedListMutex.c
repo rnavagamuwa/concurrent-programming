@@ -8,12 +8,13 @@ struct node **root;
 int threadCount =4;
 int maxValue = 65535;
 int n =1000;
-int m =10000 ;
+int m = 10000;
 double mMember=0.99;
 double mInsert=0.005;
 double mDelete=0.005;
 pthread_mutex_t lock;
-int count = 0;
+double *timespent=0;
+int distance;
 
 struct node {
   int value;
@@ -100,7 +101,7 @@ int delete(int value, struct node **root){
   return 0;
 }
 
-double calculateSD(double data[])
+double calculateSD()
 {
     double sum = 0.0, mean, standardDeviation = 0.0;
 
@@ -108,58 +109,73 @@ double calculateSD(double data[])
 
     for(i=0; i<10; ++i)
     {
-        sum += data[i];
+        sum += timespent[i];
     }
 
     mean = sum/10;
 
     for(i=0; i<10; ++i)
-        standardDeviation += pow(data[i] - mean, 2);
+        standardDeviation += pow(timespent[i] - mean, 2);
 
     return sqrt(standardDeviation/10);
 }
 
+double calculateSum(){
+    double sum = 0;
+    for (int i = 0; i < m; ++i)
+    {
+      sum += timespent[i];
+    }
+
+    return sum;
+}
 
 
 void *operations(void* rank){
-    double timespent[m];
-    clock_t begin;
-    clock_t end;
-    double timeSum = 0;
-    int keepDoing = 1;
+    long threadRank = (long)rank;
     int memberOperationCounter = 0;
     int insertOperationCounter = 0;
     int deleteOperationCounter = 0;
     int max_mMember = mMember / threadCount;
     int max_mInsert = mInsert / threadCount;
     int max_mDelete = mDelete / threadCount;
-    printf("%d\n",max_mMember );
-    printf("%d\n",max_mInsert );
-    printf("%d\n",max_mDelete );
+    clock_t begin;
+    clock_t end;
+    int count=0;
 
     while(memberOperationCounter<max_mMember || insertOperationCounter<max_mInsert || deleteOperationCounter<max_mDelete){
+          count++;
           if (memberOperationCounter<max_mMember)
           {
             memberOperationCounter++;
+            begin = clock();
             pthread_mutex_lock(&lock);
             member(rand() % maxValue+1,root);
             pthread_mutex_unlock(&lock);
+            end = clock();
+            timespent[count+distance*threadRank] = (double)(end - begin) / CLOCKS_PER_SEC;
           }
 
           if (insertOperationCounter<max_mInsert)
           {
             insertOperationCounter++;
+            begin = clock();
             pthread_mutex_lock(&lock);
             insert(rand() % maxValue+1,root);
             pthread_mutex_unlock(&lock);
+            end = clock();
+            timespent[count+distance*threadRank] = (double)(end - begin) / CLOCKS_PER_SEC;
           }
 
           if (deleteOperationCounter<max_mDelete)
           {
             deleteOperationCounter++;
+            begin = clock();
             pthread_mutex_lock(&lock);
             delete(rand() % maxValue+1,root);
             pthread_mutex_unlock(&lock);
+            end = clock();
+            timespent[count+distance*threadRank] = (double)(end - begin) / CLOCKS_PER_SEC;
           }
     }
     return NULL;
@@ -168,12 +184,32 @@ void *operations(void* rank){
 int main()
 {
 
+    printf("Enter n: ");
+    scanf("%d",&n);
+    printf("Enter m: ");
+    scanf("%d",&m);
+    printf("Enter member_fraction: ");
+    scanf("%lf",&mMember);
+    printf("Enter insert_fraction: ");
+    scanf("%lf",&mInsert);
+    printf("Enter delete_fraction: ");
+    scanf("%lf",&mDelete);
+    printf("Enter thread count: ");
+    scanf("%d",&threadCount);
+
     srand(time(NULL));
     root = malloc( sizeof(struct node) ); 
     generateList(n,root,maxValue);
     mMember = m * mMember;
     mInsert = m * mInsert;
     mDelete = m * mDelete;
+    distance = m/threadCount;
+
+    if (timespent != 0) {
+      timespent = (double*) realloc(timespent, m * sizeof(double));
+    } else {
+      timespent = (double*) malloc(m * sizeof(double));
+    }
 
     printf("===============================================================\n");
     printf("A linked list has been generated with %d elements.\n",n);
@@ -184,11 +220,11 @@ int main()
 
   long thread;
   pthread_t* thread_handles;
-   if (pthread_mutex_init(&lock, NULL) != 0)
-    {
-        printf("\n mutex init failed\n");
-        return 1;
-    }
+  if (pthread_mutex_init(&lock, NULL) != 0)
+  {
+    printf("\n mutex init failed\n");
+    return 1;
+  }
 
   thread_handles = malloc(threadCount*sizeof(pthread_t));
 
@@ -199,15 +235,14 @@ int main()
 
   for (thread = 0; thread < threadCount; ++thread)
   {
-  pthread_join(thread_handles[thread],NULL);
+    pthread_join(thread_handles[thread],NULL);
   }
 
   free(thread_handles);
   pthread_mutex_destroy(&lock);
    printf("===============================================================\n");
-   printf("%d\n",count );
-   //  printf("Average time spent : %f seconds\n",timeSum/m );
-   //  printf("Standard deviation : %f seconds\n",calculateSD(timespent));
+    printf("Average time spent : %f seconds\n",calculateSum()/m );
+    printf("Standard deviation : %f seconds\n",calculateSD());
 
     return 0;
 }
