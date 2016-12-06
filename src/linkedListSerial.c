@@ -2,17 +2,14 @@
 #include <time.h>
 #include <stdio.h>
 #include <math.h>
-#include <pthread.h>
 
 struct node **root;
-int threadCount =4;
 int maxValue = 65535;
 int n =1000;
 int m = 10000;
 double mMember=0.99;
 double mInsert=0.005;
 double mDelete=0.005;
-pthread_mutex_t lock;
 double *timespent=0;
 int distance;
 
@@ -131,54 +128,43 @@ double calculateSum(){
 }
 
 
-void *operations(void* rank){
-    long threadRank = (long)rank;
+void operations(){
     int memberOperationCounter = 0;
     int insertOperationCounter = 0;
     int deleteOperationCounter = 0;
-    int max_mMember = mMember / threadCount;
-    int max_mInsert = mInsert / threadCount;
-    int max_mDelete = mDelete / threadCount;
     clock_t begin;
     clock_t end;
     int count=0;
 
-    while(memberOperationCounter<max_mMember || insertOperationCounter<max_mInsert || deleteOperationCounter<max_mDelete){
+    while(memberOperationCounter<mMember || insertOperationCounter<mInsert || deleteOperationCounter<mDelete){
           count++;
-          if (memberOperationCounter<max_mMember)
+          if (memberOperationCounter<mMember)
           {
             memberOperationCounter++;
             begin = clock();
-            pthread_mutex_lock(&lock);
             member(rand() % maxValue+1,root);
-            pthread_mutex_unlock(&lock);
             end = clock();
-            timespent[count+distance*threadRank] = (double)(end - begin) / CLOCKS_PER_SEC;
+            timespent[count] = (double)(end - begin) / CLOCKS_PER_SEC;
           }
 
-          if (insertOperationCounter<max_mInsert)
+          if (insertOperationCounter<mInsert)
           {
             insertOperationCounter++;
             begin = clock();
-            pthread_mutex_lock(&lock);
             insert(rand() % maxValue+1,root);
-            pthread_mutex_unlock(&lock);
             end = clock();
-            timespent[count+distance*threadRank] = (double)(end - begin) / CLOCKS_PER_SEC;
+            timespent[count] = (double)(end - begin) / CLOCKS_PER_SEC;
           }
 
-          if (deleteOperationCounter<max_mDelete)
+          if (deleteOperationCounter<mDelete)
           {
             deleteOperationCounter++;
             begin = clock();
-            pthread_mutex_lock(&lock);
             delete(rand() % maxValue+1,root);
-            pthread_mutex_unlock(&lock);
             end = clock();
-            timespent[count+distance*threadRank] = (double)(end - begin) / CLOCKS_PER_SEC;
+            timespent[count] = (double)(end - begin) / CLOCKS_PER_SEC;
           }
     }
-    return NULL;
 }
 
 int main()
@@ -194,8 +180,6 @@ int main()
     scanf("%lf",&mInsert);
     printf("Enter delete_fraction: ");
     scanf("%lf",&mDelete);
-    printf("Enter thread count: ");
-    scanf("%d",&threadCount);
 
     srand(time(NULL));
     root = malloc( sizeof(struct node) ); 
@@ -203,7 +187,6 @@ int main()
     mMember = m * mMember;
     mInsert = m * mInsert;
     mDelete = m * mDelete;
-    distance = m/threadCount;
 
     if (timespent != 0) {
       timespent = (double*) realloc(timespent, m * sizeof(double));
@@ -218,31 +201,11 @@ int main()
     printf("Number of insert operations : %d\n", (int)mInsert);
     printf("Number of delete operations : %d\n", (int)mDelete);
 
-  long thread;
-  pthread_t* thread_handles;
-  if (pthread_mutex_init(&lock, NULL) != 0)
-  {
-    printf("\n mutex init failed\n");
-    return 1;
-  }
+    operations();
 
-  thread_handles = malloc(threadCount*sizeof(pthread_t));
-
-  for (thread = 0; thread < threadCount; ++thread)
-  {
-    pthread_create(&thread_handles[thread],NULL,operations,(void*) thread);
-  }
-
-  for (thread = 0; thread < threadCount; ++thread)
-  {
-    pthread_join(thread_handles[thread],NULL);
-  }
-
-  free(thread_handles);
-  pthread_mutex_destroy(&lock);
-  printf("===============================================================\n");
-  printf("Average time spent : %f seconds\n",calculateSum()/m );
-  printf("Standard deviation : %f seconds\n",calculateSD());
+    printf("===============================================================\n");
+    printf("Average time spent : %f seconds\n",calculateSum()/m );
+    printf("Standard deviation : %f seconds\n",calculateSD());
 
     return 0;
 }
