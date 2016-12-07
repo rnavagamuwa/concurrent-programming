@@ -10,7 +10,7 @@ int m = 10000;
 double mMember=0.99;
 double mInsert=0.005;
 double mDelete=0.005;
-double *timespent=0;
+int samples =1;
 int distance;
 
 struct node {
@@ -98,7 +98,7 @@ int delete(int value, struct node **root){
   return 0;
 }
 
-double calculateSD()
+double calculateSD(double timespent[])
 {
     double sum = 0.0, mean, standardDeviation = 0.0;
 
@@ -117,9 +117,9 @@ double calculateSD()
     return sqrt(standardDeviation/10);
 }
 
-double calculateSum(){
+double calculateSum(double timespent[]){
     double sum = 0;
-    for (int i = 0; i < m; ++i)
+    for (int i = 0; i < samples; ++i)
     {
       sum += timespent[i];
     }
@@ -141,19 +141,13 @@ void operations(){
           if (memberOperationCounter<mMember)
           {
             memberOperationCounter++;
-            begin = clock();
             member(rand() % maxValue+1,root);
-            end = clock();
-            timespent[count] = (double)(end - begin) / CLOCKS_PER_SEC;
           }
 
           if (insertOperationCounter<mInsert)
           {
             insertOperationCounter++;
-            begin = clock();
             insert(rand() % maxValue+1,root);
-            end = clock();
-            timespent[count] = (double)(end - begin) / CLOCKS_PER_SEC;
           }
 
           if (deleteOperationCounter<mDelete)
@@ -161,8 +155,6 @@ void operations(){
             deleteOperationCounter++;
             begin = clock();
             delete(rand() % maxValue+1,root);
-            end = clock();
-            timespent[count] = (double)(end - begin) / CLOCKS_PER_SEC;
           }
     }
 }
@@ -170,6 +162,8 @@ void operations(){
 int main()
 {
 
+    printf("No of samples: ");
+    scanf("%d",&samples);
     printf("Enter n: ");
     scanf("%d",&n);
     printf("Enter m: ");
@@ -187,12 +181,9 @@ int main()
     mMember = m * mMember;
     mInsert = m * mInsert;
     mDelete = m * mDelete;
-
-    if (timespent != 0) {
-      timespent = (double*) realloc(timespent, m * sizeof(double));
-    } else {
-      timespent = (double*) malloc(m * sizeof(double));
-    }
+    double timespent[samples];
+    clock_t begin;
+    clock_t end;
 
     printf("===============================================================\n");
     printf("A linked list has been generated with %d elements.\n",n);
@@ -201,11 +192,17 @@ int main()
     printf("Number of insert operations : %d\n", (int)mInsert);
     printf("Number of delete operations : %d\n", (int)mDelete);
 
-    operations();
+    for (int i = 0; i < samples; ++i)
+    {
+      begin = clock();
+      operations();
+      end = clock();
+      timespent[i] = (double)(end - begin) / CLOCKS_PER_SEC;
+    }
 
-    printf("===============================================================\n");
-    printf("Average time spent : %f seconds\n",calculateSum()/m );
-    printf("Standard deviation : %f seconds\n",calculateSD());
+    printf("========================================================================================\n");
+    printf("Serial Programme : Average time spent : %f seconds\n",calculateSum(timespent)/m );
+    printf("Serial Programme : Standard deviation : %f seconds\n",calculateSD(timespent));
 
     return 0;
 }
