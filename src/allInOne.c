@@ -261,8 +261,7 @@ int main()
     srand(time(NULL));
     clock_t begin;
     clock_t end;
-    root = malloc( sizeof(struct node) ); 
-    generateList(n,root,maxValue);
+    root = malloc( sizeof(struct node) );
     mMember = m * mMember;
     mInsert = m * mInsert;
     mDelete = m * mDelete;
@@ -276,6 +275,7 @@ int main()
     //Serial 
     for (int i = 0; i < samples; ++i)
     {
+      generateList(n,root,maxValue);
       begin = clock();
       operations();
       end = clock();
@@ -290,6 +290,7 @@ int main()
     //parallel with mutex
     for (int i = 0; i < samples; ++i)
     {
+       generateList(n,root,maxValue);
       thread_handles = malloc(threadCount*sizeof(pthread_t));
       if (pthread_mutex_init(&lock, NULL) != 0)
       {
@@ -319,6 +320,7 @@ int main()
     //parallel woth read write lock
     for (int i = 0; i < samples; ++i)
     {
+      generateList(n,root,maxValue);
       thread_handles = malloc(threadCount*sizeof(pthread_t));
       if (pthread_rwlock_init(&rwlock, NULL) != 0)
       {

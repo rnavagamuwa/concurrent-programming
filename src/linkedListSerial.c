@@ -175,7 +175,6 @@ int main()
 
     srand(time(NULL));
     root = malloc( sizeof(struct node) ); 
-    generateList(n,root,maxValue);
     mMember = m * mMember;
     mInsert = m * mInsert;
     mDelete = m * mDelete;
@@ -192,6 +191,7 @@ int main()
 
     for (int i = 0; i < samples; ++i)
     {
+      generateList(n,root,maxValue);
       begin = clock();
       operations();
       end = clock();

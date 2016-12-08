@@ -190,7 +190,6 @@ int main()
     clock_t begin;
     clock_t end;
     root = malloc( sizeof(struct node) ); 
-    generateList(n,root,maxValue);
     mMember = m * mMember;
     mInsert = m * mInsert;
     mDelete = m * mDelete;
@@ -209,6 +208,7 @@ int main()
   //parallel woth read write lock
     for (int i = 0; i < samples; ++i)
     {
+      generateList(n,root,maxValue);
       thread_handles = malloc(threadCount*sizeof(pthread_t));
       if (pthread_rwlock_init(&rwlock, NULL) != 0)
       {

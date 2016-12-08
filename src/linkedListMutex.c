@@ -190,7 +190,6 @@ int main()
 
     srand(time(NULL));
     root = malloc( sizeof(struct node) ); 
-    generateList(n,root,maxValue);
     clock_t begin;
     clock_t end;
     mMember = m * mMember;
@@ -209,6 +208,7 @@ int main()
   pthread_t* thread_handles;
     for (int i = 0; i < samples; ++i)
   {
+    generateList(n,root,maxValue);
     thread_handles = malloc(threadCount*sizeof(pthread_t));
     if (pthread_mutex_init(&lock, NULL) != 0)
     {
