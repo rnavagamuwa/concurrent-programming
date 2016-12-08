@@ -13,8 +13,7 @@ double mMember=0.99;
 double mInsert=0.005;
 double mDelete=0.005;
 pthread_rwlock_t rwlock;
-double *timespent=0;
-int distance;
+int samples =1 ;
 
 struct node {
   int value;
@@ -62,6 +61,7 @@ int generateList(int n, struct node **root,int maxNumber){
       i--;
     }
   }
+  return result;
 }
 
 int member(int value, struct node **root){
@@ -101,7 +101,7 @@ int delete(int value, struct node **root){
   return 0;
 }
 
-double calculateSD()
+double calculateSD(double timespent[])
 {
     double sum = 0.0, mean, standardDeviation = 0.0;
 
@@ -120,9 +120,9 @@ double calculateSD()
     return sqrt(standardDeviation/10);
 }
 
-double calculateSum(){
+double calculateSum(double timespent[]){
     double sum = 0;
-    for (int i = 0; i < m; ++i)
+    for (int i = 0; i < samples; ++i)
     {
       sum += timespent[i];
     }
@@ -132,15 +132,12 @@ double calculateSum(){
 
 
 void *operations(void* rank){
-    long threadRank = (long)rank;
     int memberOperationCounter = 0;
     int insertOperationCounter = 0;
     int deleteOperationCounter = 0;
     int max_mMember = mMember / threadCount;
     int max_mInsert = mInsert / threadCount;
     int max_mDelete = mDelete / threadCount;
-    clock_t begin;
-    clock_t end;
     int count=0;
 
     while(memberOperationCounter<max_mMember || insertOperationCounter<max_mInsert || deleteOperationCounter<max_mDelete){
@@ -148,34 +145,25 @@ void *operations(void* rank){
           if (memberOperationCounter<max_mMember)
           {
             memberOperationCounter++;
-            begin = clock();
             pthread_rwlock_rdlock(&rwlock);
             member(rand() % maxValue+1,root);
             pthread_rwlock_unlock(&rwlock);
-            end = clock();
-            timespent[count+distance*threadRank] = (double)(end - begin) / CLOCKS_PER_SEC;
           }
 
           if (insertOperationCounter<max_mInsert)
           {
             insertOperationCounter++;
-            begin = clock();
             pthread_rwlock_wrlock(&rwlock);
             insert(rand() % maxValue+1,root);
             pthread_rwlock_unlock(&rwlock);
-            end = clock();
-            timespent[count+distance*threadRank] = (double)(end - begin) / CLOCKS_PER_SEC;
           }
 
           if (deleteOperationCounter<max_mDelete)
           {
             deleteOperationCounter++;
-            begin = clock();
             pthread_rwlock_wrlock(&rwlock);
             delete(rand() % maxValue+1,root);
             pthread_rwlock_unlock(&rwlock);
-            end = clock();
-            timespent[count+distance*threadRank] = (double)(end - begin) / CLOCKS_PER_SEC;
           }
     }
     return NULL;
@@ -183,7 +171,8 @@ void *operations(void* rank){
 
 int main()
 {
-
+    printf("No of samples: ");
+    scanf("%d",&samples);
     printf("Enter n: ");
     scanf("%d",&n);
     printf("Enter m: ");
@@ -198,18 +187,15 @@ int main()
     scanf("%d",&threadCount);
 
     srand(time(NULL));
+    clock_t begin;
+    clock_t end;
     root = malloc( sizeof(struct node) ); 
     generateList(n,root,maxValue);
     mMember = m * mMember;
     mInsert = m * mInsert;
     mDelete = m * mDelete;
-    distance = m/threadCount;
 
-    if (timespent != 0) {
-      timespent = (double*) realloc(timespent, m * sizeof(double));
-    } else {
-      timespent = (double*) malloc(m * sizeof(double));
-    }
+    double timespent[samples];
 
     printf("===============================================================\n");
     printf("A linked list has been generated with %d elements.\n",n);
@@ -220,29 +206,34 @@ int main()
 
   long thread;
   pthread_t* thread_handles;
-  if (pthread_rwlock_init(&rwlock, NULL) != 0)
-  {
-    printf("\n mutex init failed\n");
-    return 1;
-  }
+  //parallel woth read write lock
+    for (int i = 0; i < samples; ++i)
+    {
+      thread_handles = malloc(threadCount*sizeof(pthread_t));
+      if (pthread_rwlock_init(&rwlock, NULL) != 0)
+      {
+        printf("\n mutex init failed\n");
+        return 1;
+      }
+      begin = clock();
+      for (thread = 0; thread < threadCount; ++thread)
+      {
+        pthread_create(&thread_handles[thread],NULL,operations,(void*) thread);
+      }
 
-  thread_handles = malloc(threadCount*sizeof(pthread_t));
+      for (thread = 0; thread < threadCount; ++thread)
+      {
+        pthread_join(thread_handles[thread],NULL);
+      }
+      end = clock();
+      timespent[i] = (double)(end - begin) / CLOCKS_PER_SEC;
+      free(thread_handles);
+      pthread_rwlock_destroy(&rwlock);
+    }
 
-  for (thread = 0; thread < threadCount; ++thread)
-  {
-    pthread_create(&thread_handles[thread],NULL,operations,(void*) thread);
-  }
-
-  for (thread = 0; thread < threadCount; ++thread)
-  {
-    pthread_join(thread_handles[thread],NULL);
-  }
-
-  free(thread_handles);
-  pthread_rwlock_destroy(&rwlock);
-  printf("===============================================================\n");
-  printf("Average time spent : %f seconds\n",calculateSum()/m );
-  printf("Standard deviation : %f seconds\n",calculateSD());
+    printf("========================================================================================\n");
+    printf("Parallel Programme with RW lock: Average time spent : %f seconds\n",calculateSum(timespent)/samples);
+    printf("Parallel Programme with RW lock: Standard deviation : %f seconds\n",calculateSD(timespent));
 
     return 0;
 }

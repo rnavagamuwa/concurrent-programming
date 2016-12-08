@@ -63,6 +63,7 @@ int generateList(int n, struct node **root,int maxNumber){
       i--;
     }
   }
+  return result;
 }
 
 int member(int value, struct node **root){
@@ -161,7 +162,6 @@ void operations(){
 
 
 void *operationsMutex(void* rank){
-    long threadRank = (long)rank;
     int memberOperationCounter = 0;
     int insertOperationCounter = 0;
     int deleteOperationCounter = 0;
@@ -200,7 +200,6 @@ void *operationsMutex(void* rank){
 }
 
 void *operationsRW(void* rank){
-    long threadRank = (long)rank;
     int memberOperationCounter = 0;
     int insertOperationCounter = 0;
     int deleteOperationCounter = 0;
@@ -284,7 +283,7 @@ int main()
     }
 
     printf("========================================================================================\n");
-    printf("Serial Programme : Average time spent : %f seconds\n",calculateSum(timespent)/m );
+    printf("Serial Programme : Average time spent : %f seconds\n",calculateSum(timespent)/samples );
     printf("Serial Programme : Standard deviation : %f seconds\n",calculateSD(timespent));
 
 
@@ -314,7 +313,7 @@ int main()
     }
 
     printf("========================================================================================\n");
-    printf("Parallel Programme with mutex : Average time spent : %f seconds\n",calculateSum(timespent)/m );
+    printf("Parallel Programme with mutex : Average time spent : %f seconds\n",calculateSum(timespent)/samples );
     printf("Parallel Programme with mutex : Standard deviation : %f seconds\n",calculateSD(timespent));
 
     //parallel woth read write lock
@@ -343,7 +342,7 @@ int main()
     }
 
     printf("========================================================================================\n");
-    printf("Parallel Programme with RW lock: Average time spent : %f seconds\n",calculateSum(timespent)/m );
+    printf("Parallel Programme with RW lock: Average time spent : %f seconds\n",calculateSum(timespent)/samples );
     printf("Parallel Programme with RW lock: Standard deviation : %f seconds\n",calculateSD(timespent));
     return 0;
 }

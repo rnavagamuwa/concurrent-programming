@@ -62,6 +62,7 @@ int generateList(int n, struct node **root,int maxNumber){
       i--;
     }
   }
+  return result;
 }
 
 int member(int value, struct node **root){
@@ -132,15 +133,12 @@ double calculateSum(double timespent[]){
 
 
 void *operations(void* rank){
-    long threadRank = (long)rank;
     int memberOperationCounter = 0;
     int insertOperationCounter = 0;
     int deleteOperationCounter = 0;
     int max_mMember = mMember / threadCount;
     int max_mInsert = mInsert / threadCount;
     int max_mDelete = mDelete / threadCount;
-    clock_t begin;
-    clock_t end;
     int count=0;
 
     while(memberOperationCounter<max_mMember || insertOperationCounter<max_mInsert || deleteOperationCounter<max_mDelete){
@@ -234,7 +232,7 @@ int main()
   }
   
   printf("===============================================================\n");
-  printf("Average time spent : %f seconds\n",calculateSum(timespent)/m );
+  printf("Average time spent : %f seconds\n",calculateSum(timespent)/samples );
   printf("Standard deviation : %f seconds\n",calculateSD(timespent));
 
     return 0;

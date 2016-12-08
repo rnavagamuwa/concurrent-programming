@@ -59,6 +59,7 @@ int generateList(int n, struct node **root,int maxNumber){
       i--;
     }
   }
+  return result;
 }
 
 int member(int value, struct node **root){
@@ -132,8 +133,6 @@ void operations(){
     int memberOperationCounter = 0;
     int insertOperationCounter = 0;
     int deleteOperationCounter = 0;
-    clock_t begin;
-    clock_t end;
     int count=0;
 
     while(memberOperationCounter<mMember || insertOperationCounter<mInsert || deleteOperationCounter<mDelete){
@@ -153,7 +152,6 @@ void operations(){
           if (deleteOperationCounter<mDelete)
           {
             deleteOperationCounter++;
-            begin = clock();
             delete(rand() % maxValue+1,root);
           }
     }
@@ -201,7 +199,7 @@ int main()
     }
 
     printf("========================================================================================\n");
-    printf("Serial Programme : Average time spent : %f seconds\n",calculateSum(timespent)/m );
+    printf("Serial Programme : Average time spent : %f seconds\n",calculateSum(timespent)/samples );
     printf("Serial Programme : Standard deviation : %f seconds\n",calculateSD(timespent));
 
     return 0;
