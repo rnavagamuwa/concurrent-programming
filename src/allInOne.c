@@ -1,3 +1,4 @@
+
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
@@ -45,14 +46,14 @@ int insert(int value,struct node **root){
         }
         return 1;
     }else{
-        return 0; 
+        return 0;
     }
-  
+
 }
 
 int generateList(int n, struct node **root,int maxNumber){
   int result = 0;
-  *root = malloc( sizeof(struct node) ); 
+  *root = malloc( sizeof(struct node) );
   (*root)->value = rand() % maxNumber+1;
 
   for (int i = 0; i < n; ++i)
@@ -63,6 +64,7 @@ int generateList(int n, struct node **root,int maxNumber){
       i--;
     }
   }
+
   return result;
 }
 
@@ -213,7 +215,7 @@ void *operationsRW(void* rank){
           if (memberOperationCounter<max_mMember)
           {
             memberOperationCounter++;
-           
+
             pthread_rwlock_rdlock(&rwlock);
             member(rand() % maxValue+1,root);
             pthread_rwlock_unlock(&rwlock);
@@ -222,11 +224,11 @@ void *operationsRW(void* rank){
           if (insertOperationCounter<max_mInsert)
           {
             insertOperationCounter++;
-           
+
             pthread_rwlock_wrlock(&rwlock);
             insert(rand() % maxValue+1,root);
             pthread_rwlock_unlock(&rwlock);
-        
+
           }
 
           if (deleteOperationCounter<max_mDelete)
@@ -269,10 +271,10 @@ int main()
     pthread_t* thread_handles;
     double timespent[samples];
 
-    printf("========================================================================================\n");
-    printf("A linked list has been generated with %d elements.\n",n);
+    // printf("========================================================================================\n");
+    // printf("A linked list has been generated with %d elements.\n",n);
 
-    //Serial 
+    //Serial
     for (int i = 0; i < samples; ++i)
     {
       generateList(n,root,maxValue);
@@ -280,13 +282,16 @@ int main()
       operations();
       end = clock();
       timespent[i] = (double)(end - begin) / CLOCKS_PER_SEC;
+      free(*root);
+
     }
 
     printf("========================================================================================\n");
     printf("Serial Programme : Average time spent : %f seconds\n",calculateSum(timespent)/samples );
     printf("Serial Programme : Standard deviation : %f seconds\n",calculateSD(timespent));
 
-
+    //free the linked list
+    //free(*root);
     //parallel with mutex
     for (int i = 0; i < samples; ++i)
     {
@@ -311,12 +316,14 @@ int main()
       timespent[i] = (double)(end - begin) / CLOCKS_PER_SEC;
       free(thread_handles);
       pthread_mutex_destroy(&lock);
+      free(*root);
     }
 
     printf("========================================================================================\n");
     printf("Parallel Programme with mutex : Average time spent : %f seconds\n",calculateSum(timespent)/samples );
     printf("Parallel Programme with mutex : Standard deviation : %f seconds\n",calculateSD(timespent));
 
+    //  free(*root);
     //parallel woth read write lock
     for (int i = 0; i < samples; ++i)
     {
@@ -341,6 +348,7 @@ int main()
       timespent[i] = (double)(end - begin) / CLOCKS_PER_SEC;
       free(thread_handles);
       pthread_rwlock_destroy(&rwlock);
+      free(*root);
     }
 
     printf("========================================================================================\n");
